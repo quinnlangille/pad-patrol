@@ -5,7 +5,7 @@ const accountSid = config.get(`twilio.account`);
 const authToken = config.get(`twilio.token`)
 const client = new Twilio(accountSid, authToken);
 
-function sendSMS({
+function SMS({
   body,
   to,
   from
@@ -26,5 +26,5 @@ function sendSMS({
 }
 
 module.exports = {
-  sendSMS
+  SMS
 };

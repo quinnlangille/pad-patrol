@@ -5,18 +5,40 @@ const rp = require('request-promise')
 const checksum = require('checksum');
 const co = require('cheerio')
 const config = require('config');
-const Twilio = require('twilio')
+const send = require('./send')
 
 console.log('🕵🏠 Initiating Pad-Patrol...')
+
+function generateApartmentString(url) {
+  rp(url)
+    .then((HTMLresponse) => {
+      const $ = co.load(HTMLresponse);
+      let apartmentString = "";
+
+      // use cheerio to parse HTML response and find all search results
+      // then find all apartmentlistingIDs and concatenate them 
+      $(".search-item.regular-ad").each((i, element) => {
+        apartmentString += `${element.attribs["data-ad-id"]}`;
+      });
+
+      return apartmentString
+    }).catch(err => {
+      console.log(`Could not complete fetch of ${url}: ${err}`)
+    })
+}
 
 // Instantiate the site URLs outsite of any method.
 // This way, they will keep their state so we can check against
 // previous values
 const sitesToCrawl = config.get("urls");
-const sitesWithHash = sitesToCrawl.map(url => ({
-  url,
-  hash: ""
-}));
+const sitesWithHash = sitesToCrawl.map(async (url) => {
+  console.log(`Setting up search for ${url.split('/')[5]}`)
+  const hash = checksum(await generateApartmentString(url))
+  return {
+    url,
+    hash
+  }
+});
 
 function buildMessage(url) {
   // This is the position of the search query inside kijiji's URL slug
@@ -31,57 +53,50 @@ function buildMessage(url) {
   };
 }
 
-function watchChanges(index) {
+async function huntForChanges(index) {
   // We pass only the index to avoid complex mutations of the site objects
   // instead we mofidy the main object directly by using it's index
-  const site = sitesWithHash[index];
+  const {
+    url,
+    hash: oldHash
+  } = await sitesWithHash[index];
+  console.log({
+    url,
+    oldHash
+  })
+  const apartmentString = generateApartmentString(url)
+  const newHash = checksum(apartmentString);
 
-  rp(site.url)
-    .then((response) => {
-      const $ = co.load(response);
-      let apartmentString = "";
+  // if the new hash and old hash are not equal, set the site hash to the new value
+  // and send an SMS alerting changes
+  if (newHash !== oldHash) {
+    console.log(`💡 There is a new post!`);
+    sitesWithHash[index].hash = newHash;
+    send.SMS(buildMessage(url));
+    return;
+  }
 
-      // use cheerio to parse HTML response and find all search results
-      // then find all apartmentlistingIDs and concatenate them 
-      $(".search-item.regular-ad").each((i, element) => {
-        apartmentString += `${element.attribs["data-ad-id"]}`;
-      });
-
-      const newHash = checksum(apartmentString);
-
-      // if this is the first pass, generate a checksum and exit
-      if (site.hash === "") {
-        site.hash = newHash;
-
-        return;
-      }
-
-      // if the new hash and old hash are not equal, set the site hash to the new value
-      // and send an SMS alerting changes
-      if (checksum(apartmentString) !== site.hash) {
-        console.log(`💡 There is a new post!`);
-        site.hash = newHash;
-        Twilio.sendSMS(buildMessage(site.url));
-        return;
-      }
-
-      // if we find no updates, report back and return
-      console.log(`😓 Nothing to report on your search for ${site.url.split('/')[5]}.`)
-    })
-    .catch((err) => {
-      console.log(`Cannot fetch ${site.url}: ${err} ${err.stack}`);
-    });
+  // if we find no updates, report back and return
+  console.log(`😓 Nothing to report on your search for ${url.split('/')[5]}.`)
 }
 
 // This function will run inside our setInterval
 function checkURL(sites) {
   console.log(`🕵️  Checking for updates...`);
-  sites.forEach((site, index) => {
-    watchChanges(index);
+  sites.forEach(async (site, index) => {
+    console.log({
+      index
+    })
+    await huntForChanges(index);
+
   });
 }
 
 // 600000ms = 10 minutes
 setInterval(() => {
-  checkURL(sitesWithHash);
+  if (sitesWithHash) {
+    checkURL(sitesWithHash);
+  } else {
+    console.log(`Please add URLs to your .env file!`)
+  }
 }, process.env.CHECK_INTERVAL_MS || 600000);
