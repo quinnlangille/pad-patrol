@@ -1,7 +1,7 @@
 {
   "name": "apartment-hunter",
   "version": "1.0.0",
-  "description": "An application that monitors apartment websites",
+  "description": "An easier way to hunt for apartments",
   "main": "index.js",
   "scripts": {
     "start": "nodemon src/index.js"
