@@ -1,11 +1,11 @@
 const config = require("config");
-var twilio = require("twilio");
+const Twilio = require("twilio");
 
-var accountSid = config.get(`twilio.account`);
-var authToken = config.get(`twilio.token`)
-var client = new twilio(accountSid, authToken);
+const accountSid = config.get(`twilio.account`);
+const authToken = config.get(`twilio.token`)
+const client = new Twilio(accountSid, authToken);
 
-function sendSMS({
+function SMS({
   body,
   to,
   from
@@ -17,14 +17,14 @@ function sendSMS({
       to,
       from
     })
-    .then(function (message) {
+    .then(() => {
       console.log(`👍 Success! Message has been sent to ${to}`);
     })
-    .catch(function (err) {
+    .catch((err) => {
       console.log(err);
     });
 }
 
 module.exports = {
-  sendSMS
+  SMS
 };
