@@ -8,7 +8,7 @@ Pad Patrol is a small tool that watches a list of supplied URLs for changes. Whe
 
 ### Usage
 
-To get started, you'll need to sign up for a [twilio account](https://www.twilio.com/try-twilio) (They offer a free trial that should accomodate more than enough for the duration of your apartment hunt).
+To get started, you'll need to sign up for a [twilio account](https://www.twilio.com/try-twilio) (They offer a free trial that should accomodate the duration of your apartment hunt).
 
 Once that's done, you'll need clone this repo
 
@@ -26,7 +26,7 @@ $ mkdir .env
 finally, finish with the usual
 
 ```bash
-$ yarn install // or npm install if you prefer
+$ yarn install // or npm install
 $ yarn start
 ```
 

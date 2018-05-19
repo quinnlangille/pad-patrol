@@ -60,10 +60,6 @@ async function huntForChanges(index) {
     url,
     hash: oldHash
   } = await sitesWithHash[index];
-  console.log({
-    url,
-    oldHash
-  })
   const apartmentString = generateApartmentString(url)
   const newHash = checksum(apartmentString);
 
@@ -84,9 +80,6 @@ async function huntForChanges(index) {
 function checkURL(sites) {
   console.log(`🕵️  Checking for updates...`);
   sites.forEach(async (site, index) => {
-    console.log({
-      index
-    })
     await huntForChanges(index);
 
   });
