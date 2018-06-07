@@ -16,14 +16,10 @@ Once that's done, you'll need clone this repo
 $ git clone https://github.com/quinnlangille/pad-patrol.git
 ```
 
-Because most of the info involved with Twilio is user confidential, we use [.dotenv](https://github.com/motdotla/dotenv) to keep private info safe. To use it you'll need to create a envionmental variable file in the root of this folder
+Because most of the info involved with Twilio is user confidential, we use [.dotenv](https://github.com/motdotla/dotenv) to keep private info safe. To use it you'll add some envionmental variables to the `.env` file in the root of this project
 
-```bash
-$ cd pad-patrol // or whatever you called the directory
-$ mkdir .env
-```
 
-finally, finish with the usual
+Finally, once your ENV's have been added, finish with the usual
 
 ```bash
 $ yarn install // or npm install
